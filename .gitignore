@@ -1,0 +1,28 @@
+# generated files
+target/
+generated/
+
+# dependencies
+Dependencies.toml
+node_modules/
+package-lock.json
+yarn.lock
+
+# config files
+Config.toml
+.env
+.env.local
+# the config files used for testing, Uncomment the following line if you want to commit the test config files
+#!**/tests/Config.toml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
