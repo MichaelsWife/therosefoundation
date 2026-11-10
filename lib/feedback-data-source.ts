@@ -17,44 +17,7 @@ export interface FeedbackSummary {
   statusBreakdown: Record<FeedbackStatus, number>;
 }
 
-const STORAGE_KEY = "rose-foundation:feedback";
-
 export class FeedbackDataSource {
-  private readLocalStorage(): FeedbackRecord[] {
-    if (typeof window === "undefined") return [];
-
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-
-    try {
-      const parsed = JSON.parse(raw) as unknown;
-      if (!Array.isArray(parsed)) return [];
-      return parsed.filter((item): item is FeedbackRecord => {
-        if (!item || typeof item !== "object") return false;
-        const record = item as Record<string, unknown>;
-        return (
-          typeof record.id === "string" &&
-          typeof record.product === "string" &&
-          (record.sentiment === "positive" ||
-            record.sentiment === "neutral" ||
-            record.sentiment === "negative") &&
-          typeof record.message === "string" &&
-          (record.status === "pending" ||
-            record.status === "approved" ||
-            record.status === "archived") &&
-          typeof record.createdAt === "string"
-        );
-      });
-    } catch {
-      return [];
-    }
-  }
-
-  private writeLocalStorage(records: FeedbackRecord[]) {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  }
-
   private async request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
     const response = await fetch(input, {
       ...init,
@@ -66,25 +29,16 @@ export class FeedbackDataSource {
     });
 
     if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
+      const body = await response.json().catch(() => null);
+      throw new Error(body?.error ?? `Request failed (${response.status}).`);
     }
 
     return (await response.json()) as T;
   }
 
   async listFeedback(product?: string): Promise<FeedbackRecord[]> {
-    try {
-      const url = product
-        ? `/api/feedback?product=${encodeURIComponent(product)}`
-        : "/api/feedback";
-      const records = await this.request<FeedbackRecord[]>(url);
-      return records;
-    } catch {
-      const records = this.readLocalStorage();
-      return product
-        ? records.filter((record) => record.product === product)
-        : records;
-    }
+    const query = product ? `?product=${encodeURIComponent(product)}` : "";
+    return this.request<FeedbackRecord[]>(`/api/feedback${query}`);
   }
 
   async addFeedback(
@@ -92,64 +46,24 @@ export class FeedbackDataSource {
     sentiment: FeedbackSentiment,
     message: string,
   ): Promise<FeedbackRecord> {
-    const trimmedProduct = product.trim();
-    const trimmedMessage = message.trim();
-
-    if (!trimmedProduct || !trimmedMessage) {
-      throw new TypeError("Product and message must be provided.");
-    }
-
-    try {
-      const record = await this.request<FeedbackRecord>("/api/feedback", {
-        method: "POST",
-        body: JSON.stringify({ product: trimmedProduct, sentiment, message: trimmedMessage }),
-      });
-      return record;
-    } catch {
-      const records = this.readLocalStorage();
-      const created: FeedbackRecord = {
-        id: crypto.randomUUID(),
-        product: trimmedProduct,
-        sentiment,
-        message: trimmedMessage,
-        status: "pending",
-        createdAt: new Date().toISOString(),
-      };
-      this.writeLocalStorage([...records, created]);
-      return created;
-    }
+    return this.request<FeedbackRecord>("/api/feedback", {
+      method: "POST",
+      body: JSON.stringify({ product, sentiment, message }),
+    });
   }
 
   async updateFeedback(
     id: string,
     updates: Partial<Pick<FeedbackRecord, "status" | "message" | "sentiment" | "product">>,
   ): Promise<FeedbackRecord> {
-    try {
-      const record = await this.request<FeedbackRecord>(`/api/feedback/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(updates),
-      });
-      return record;
-    } catch {
-      const records = this.readLocalStorage();
-      const updated = records.map((record) =>
-        record.id === id ? { ...record, ...updates } : record,
-      );
-      this.writeLocalStorage(updated);
-      const match = updated.find((record) => record.id === id);
-      if (!match) throw new Error("Feedback record not found.");
-      return match;
-    }
+    return this.request<FeedbackRecord>(`/api/feedback/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify(updates),
+    });
   }
 
   async deleteFeedback(id: string): Promise<void> {
-    try {
-      await this.request(`/api/feedback/${id}`, { method: "DELETE" });
-      return;
-    } catch {
-      const records = this.readLocalStorage().filter((record) => record.id !== id);
-      this.writeLocalStorage(records);
-    }
+    await this.request(`/api/feedback/${encodeURIComponent(id)}`, { method: "DELETE" });
   }
 
   async getSummary(): Promise<FeedbackSummary> {

@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rose Foundation
 
-## Getting Started
+A community kindness app built with Next.js, TypeScript, and Tailwind CSS. Visitors can share community notes, and administrators can review, approve, archive, or delete submissions.
 
-First, run the development server:
+## Run locally
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app works with secure defaults in development, and you can set a custom admin code and secret via environment variables if you want to override them.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open http://localhost:3000 for the public site, /admin for secure access, and /dashboard for administration.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Default development credentials
 
-## Learn More
+- Admin code: `rosecare`
+- Session secret: a generated secret is set automatically in development if `ADMIN_SESSION_SECRET` is not provided
 
-To learn more about Next.js, take a look at the following resources:
+## Production notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Before shipping to production, set environment variables for `ADMIN_ACCESS_CODE` and `ADMIN_SESSION_SECRET` in a real environment and do not commit `.env.local`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app stores records in `data/feedback.json` for local development. For a production deployment, replace the file-based store with a durable database and add privacy protections for user-submitted content.

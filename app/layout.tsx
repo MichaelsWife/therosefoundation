@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Rose Foundation",
-  description: "A community kindness and care platform for sharing support, needs, and moments of good.",
+  description: "A community kindness and care platform for sharing support, needs, and acts of good.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
