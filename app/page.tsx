@@ -1,17 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import {
-  feedbackDataSource,
-  type FeedbackRecord,
-  type FeedbackSentiment,
-} from "@/lib/feedback-data-source";
+import { feedbackDataSource, type FeedbackRecord, type FeedbackSentiment } from "@/lib/feedback-data-source";
 
-const sentimentOptions: {
-  value: FeedbackSentiment;
-  label: string;
-  icon: string;
-}[] = [
+const sentimentOptions: { value: FeedbackSentiment; label: string; icon: string }[] = [
   { value: "positive", label: "Positive", icon: "☺" },
   { value: "neutral", label: "Neutral", icon: "◉" },
   { value: "negative", label: "Needs care", icon: "☹" },
@@ -32,8 +24,12 @@ export default function Home() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setRecords(feedbackDataSource.listFeedback());
-    setReady(true);
+    async function load() {
+      const list = await feedbackDataSource.listFeedback();
+      setRecords(list);
+      setReady(true);
+    }
+    load();
   }, []);
 
   const summary = useMemo(() => {
@@ -43,11 +39,12 @@ export default function Home() {
     return { count, positive, people };
   }, [records]);
 
-  function submitFeedback(event: FormEvent<HTMLFormElement>) {
+  async function submitFeedback(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try {
-      feedbackDataSource.addFeedback(product, sentiment, message);
-      setRecords(feedbackDataSource.listFeedback());
+      await feedbackDataSource.addFeedback(product, sentiment, message);
+      const next = await feedbackDataSource.listFeedback();
+      setRecords(next);
       setProduct("");
       setMessage("");
       setSentiment("positive");
@@ -75,7 +72,10 @@ export default function Home() {
           <a className="nav-link" href="#stories">Community notes</a>
           <a className="nav-link" href="#share">Share a note</a>
         </nav>
-        <a href="#share" className="rounded-full bg-[#294338] px-5 py-3 text-xs font-semibold text-white transition hover:bg-[#3a5a49]">Be part of it <span aria-hidden="true">↗</span></a>
+        <div className="flex items-center gap-3">
+          <a href="/admin" className="rounded-full border border-[#d5d6ce] px-4 py-2 text-xs font-semibold text-[#294338] transition hover:bg-white">Admin</a>
+          <a href="#share" className="rounded-full bg-[#294338] px-5 py-3 text-xs font-semibold text-white transition hover:bg-[#3a5a49]">Be part of it <span aria-hidden="true">↗</span></a>
+        </div>
       </header>
 
       <section id="home" className="hero-shell relative mx-auto grid max-w-7xl items-center gap-10 px-6 pb-20 pt-10 sm:px-10 md:grid-cols-[1.05fr_.95fr] md:pb-28 md:pt-16 lg:px-14">
@@ -85,7 +85,7 @@ export default function Home() {
           <p className="mt-7 max-w-md text-base leading-7 text-[#69776e] sm:text-lg sm:leading-8">Small acts of kindness make a stronger community. Share what you’ve seen, what you need, or one good thing you can offer.</p>
           <div className="mt-9 flex flex-wrap items-center gap-4">
             <a href="#share" className="button-primary">Share a little good <span aria-hidden="true">↗</span></a>
-            <a href="#stories" className="button-quiet">Explore community notes <span aria-hidden="true">↓</span></a>
+            <a href="/dashboard" className="button-quiet">Explore community notes <span aria-hidden="true">↓</span></a>
           </div>
           <div className="mt-12 flex items-center gap-4 border-t border-[#e8e7df] pt-6">
             <div className="avatar-stack" aria-hidden="true"><span>M</span><span>A</span><span>J</span><span>+</span></div>
