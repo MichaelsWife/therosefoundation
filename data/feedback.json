@@ -1,5 +1,5 @@
-{
-  "seed-1": {
+[
+  {
     "id": "seed-1",
     "product": "Meal train",
     "sentiment": "positive",
@@ -7,7 +7,7 @@
     "status": "approved",
     "createdAt": "2026-11-01T09:30:00.000Z"
   },
-  "seed-2": {
+  {
     "id": "seed-2",
     "product": "Volunteer support",
     "sentiment": "neutral",
@@ -15,7 +15,7 @@
     "status": "pending",
     "createdAt": "2026-11-02T11:15:00.000Z"
   },
-  "seed-3": {
+  {
     "id": "seed-3",
     "product": "Ride assistance",
     "sentiment": "negative",
@@ -23,4 +23,4 @@
     "status": "approved",
     "createdAt": "2026-11-03T13:45:00.000Z"
   }
-}
+]
